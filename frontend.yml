@@ -1,0 +1,36 @@
+---
+# This playbook will install nginx and deploy the frontend content for the roboshop application.
+
+-name: install nginx
+hosts: all
+become: true  
+# The tasks section defines the individual tasks that will be executed on the target hosts. Each task has a name and uses Ansible modules to perform specific actions, such as installing packages, copying files, managing services, etc.
+tasks:
+# this task will install nginx using the dnf package manager. The 'state: present' ensures that nginx is installed on the target hosts.
+  - name: install nginx
+    anisible.builtin.dnf:
+      name: nginx
+      state: present
+  - name: copy nginx config file
+    anisible.builtin.copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+  - name: remove default nginx content
+    anisible.builtin.file:
+      path: /usr/share/nginx/html
+      state: absent
+  - name: create html directory
+    anisible.builtin.file:
+      path: /usr/share/nginx/html
+      state: directory
+
+  - name:  download frontend content
+    ansible.builtin.unarchive:
+      url: https://raw.githubusercontent.com/raghudevopsb89/roboshop-microservices/main/artifacts/frontend-compiled.zip
+      dest: /usr/share/nginx/html
+      remote_src: true
+  - name: start nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted  
+      enabled: yes
